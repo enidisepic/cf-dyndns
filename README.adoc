@@ -1,3 +1,78 @@
 = cf-dyndns
 
-Dynamic DNS using CloudFlare
+Dynamic DNS using Cloudflare
+
+== How it works
+
+cf-dyndns is available as an OCI image or executable (coming soon) for Windows, Linux and macOS (both amd64 and arm64).
+
+Internally, it runs as a daemon and (should) only fatally crash in the case of something going critically wrong during startup.
+
+If no Cron schedule is set (see xref:#cron-env[]) it will update the defined Cloudflare entry every five minutes.
+
+The actual process works by grabbing the current IP via a call to the anysrc API (https://anysrc.net). The IP from that is then set as the IP which the defined Cloudflare DNS entry is pointing to.
+
+NOTE: Currently, only IPv4 addresses/A records are supported.
+
+== Usage
+
+=== Deployment
+
+==== Docker (with Compose)
+
+Example:
+
+[source,yaml]
+----
+services:
+  server:
+    image: ghcr.io/enidisepic/cf-dyndns:latest
+    restart: unless-stopped
+    environment:
+      - CRON_SCHEDULE=@every 1h
+      - CF_API_KEY=<your API key>
+      - CF_ZONE_ID=<your zone ID>
+      - CF_ENTRY_NAME=<your DNS entry name>
+      - CF_ENTRY_ID=<your DNS entry's ID>
+----
+
+=== Environment Variables
+
+These environment variables can be defined directory or in a `.env` file in the same directory as the daemon itself.
+
+[#cron-env]
+==== `CRON_SCHEDULE`
+
+Optional. The cron schedule at which to update the DNS entry (default `@every 5m`)
+
+==== `CF_API_KEY`
+
+The Cloudflare API key. To generate one follow these steps:
+
+1. Go to your link:https://dash.cloudflare.com[Cloudflare dashboard]
+2. Click on the user icon in the top right
+3. Press "My Profile"
+4. Under "API Tokens" create a new one
+5. Use the "Edit zone DNS" template
+6. Under "Zone Resources" select the zone in which your DynDns entry will reside
+7. Click on "Continue to summary", then "Create Token"
+
+==== `CF_ZONE_ID`
+
+The Cloudflare zone ID of the zone the DynDNS entry will be in. You can find this in the right-side information view when looking at your zone's DNS entries in the dashboard.
+
+==== `CF_ENTRY_NAME`
+
+The FQDN of your DynDNS entry. You can create this now and use a placeholder as the IP address it points to. Must be an A record.
+
+==== `CF_ENTRY_ID`
+
+The ID of the DynDNS entry. To find this open your browser's developer tools and navigate to the "Networking" tab. After that, update the IP address the entry points to (can be any placeholder or real IP address).
+
+In the networking tab there should now be a request to `https://dash.cloudflare.com/api/v4/zones/<zone ID>/dns_records/<entry ID>`. Copy the entry ID from this URL.
+
+== To Do
+
+* Binary releases
+* Linting/etc. within CI
+* Script to get entry and zone IDs
