@@ -1,8 +1,11 @@
+// Main package of cf-dyndns. Only houses
+// the necessary bootstrapping functionality
+// for cf-dyndns to work.
 package main
 
 import (
-	"github.com/enidisepic/cf-dyndns/internal/anysrc_wrapper"
-	"github.com/enidisepic/cf-dyndns/internal/cloudflare_wrapper"
+	"github.com/enidisepic/cf-dyndns/internal/helpers/anysrc"
+	"github.com/enidisepic/cf-dyndns/internal/helpers/cloudflare"
 	"github.com/joho/godotenv"
 	"github.com/robfig/cron/v3"
 	"log"
@@ -10,14 +13,14 @@ import (
 )
 
 func run() {
-	ipAddress, err := anysrc_wrapper.GetCurrentIpAddress()
+	ipAddress, err := anysrc.GetCurrentIPAddress()
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	log.Println("Got IP:", ipAddress)
 
-	err = cloudflare_wrapper.UpdateEntry(ipAddress)
+	err = cloudflare.UpdateEntry(ipAddress)
 	if err != nil {
 		log.Fatal(err)
 		return

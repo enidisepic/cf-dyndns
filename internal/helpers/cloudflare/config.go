@@ -1,4 +1,4 @@
-package cloudflare_wrapper
+package cloudflare
 
 import (
 	"errors"

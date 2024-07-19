@@ -1,4 +1,4 @@
-package cloudflare_wrapper
+package cloudflare
 
 type entryUpdateRequest struct {
 	Content string   `json:"content"`

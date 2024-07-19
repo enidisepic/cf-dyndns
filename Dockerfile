@@ -13,4 +13,5 @@ WORKDIR /app
 COPY --from=build /build/cf-dyndns cf-dyndns
 
 HEALTHCHECK NONE
+USER cf-dyndns
 CMD ["./cf-dyndns"]

@@ -1,13 +1,21 @@
 name: Build and publish Docker image
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - Run MegaLinters
+    types:
+      - completed
     branches:
       - main
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   build-and-publish-image:

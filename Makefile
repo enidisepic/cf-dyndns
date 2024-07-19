@@ -3,7 +3,8 @@
 # ========================
 
 OUTPUT_DIRECTORY ?= out
-OUTPUT_FILE      := $(OUTPUT_DIRECTORY)/cf-dyndns
+OUTPUT_FILE_NAME      := cf-dyndns
+OUTPUT_PATH      := $(OUTPUT_DIRECTORY)/$(OUTPUT_FILE_NAME)
 CMD_DIRECTORY    := $(CURDIR)/cmd/cf-dyndns
 
 # ========================
@@ -19,5 +20,5 @@ run:
 .PHONY: build
 build:
 	@echo "-> Building cf-dyndns <-"
-	go build -o $(OUTPUT_FILE) $(CMD_DIRECTORY)
+	go build -o $(OUTPUT_PATH) $(CMD_DIRECTORY)
 	@echo
