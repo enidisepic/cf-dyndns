@@ -1,4 +1,4 @@
-package cloudflare_wrapper
+package cloudflare
 
 import (
 	"errors"
@@ -8,9 +8,9 @@ import (
 )
 
 type entryUpdateRequestConfig struct {
-	ApiKey    string
-	ApiUrl    string
-	ZoneId    string
+	APIKEY    string
+	APIURL    string
+	ZoneID    string
 	EntryName string
 }
 
@@ -19,12 +19,12 @@ func getConfig() (entryUpdateRequestConfig, error) {
 	if apiKey == "" {
 		return util.Zero[entryUpdateRequestConfig](), errors.New("CF_API_KEY environment variable not set")
 	}
-	zoneId := os.Getenv("CF_ZONE_ID")
-	if zoneId == "" {
+	zoneID := os.Getenv("CF_ZONE_ID")
+	if zoneID == "" {
 		return util.Zero[entryUpdateRequestConfig](), errors.New("CF_ZONE_ID environment variable not set")
 	}
-	entryId := os.Getenv("CF_ENTRY_ID")
-	if entryId == "" {
+	entryID := os.Getenv("CF_ENTRY_ID")
+	if entryID == "" {
 		return util.Zero[entryUpdateRequestConfig](), errors.New("CF_ENTRY_ID environment variable not set")
 	}
 	entryName := os.Getenv("CF_ENTRY_NAME")
@@ -32,16 +32,16 @@ func getConfig() (entryUpdateRequestConfig, error) {
 		return util.Zero[entryUpdateRequestConfig](), errors.New("CF_ENTRY_NAME environment variable not set")
 	}
 
-	cloudflareApiUrl := fmt.Sprintf(
+	cloudflareAPIURL := fmt.Sprintf(
 		"https://api.cloudflare.com/client/v4/zones/%s/dns_records/%s",
-		zoneId,
-		entryId,
+		zoneID,
+		entryID,
 	)
 
 	return entryUpdateRequestConfig{
-		ApiKey:    apiKey,
-		ApiUrl:    cloudflareApiUrl,
-		ZoneId:    zoneId,
+		APIKEY:    apiKey,
+		APIURL:    cloudflareAPIURL,
+		ZoneID:    zoneID,
 		EntryName: entryName,
 	}, nil
 }

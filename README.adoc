@@ -4,15 +4,25 @@ Dynamic DNS using Cloudflare
 
 == How it works
 
-cf-dyndns is available as an OCI image or executable (coming soon) for Windows, Linux and macOS (both amd64 and arm64).
+cf-dyndns is available as an OCI image or executable for Windows, Linux and macOS (both amd64 and arm64).
 
-Internally, it runs as a daemon and (should) only fatally crash in the case of something going critically wrong during startup.
+Internally, it runs as a daemon and (should) only fatally crash in the case of something going wrong during startup.
 
-If no Cron schedule is set (see xref:#cron-env[]) it will update the defined Cloudflare entry every five minutes.
+If no Cron schedule is set (see xref:#cron-schedule[]) it will update the defined Cloudflare entry every five minutes.
 
 The actual process works by grabbing the current IP via a call to the anysrc API (https://anysrc.net). The IP from that is then set as the IP which the defined Cloudflare DNS entry is pointing to.
 
 NOTE: Currently, only IPv4 addresses/A records are supported.
+
+== Releases
+
+Releases can be found here:
+
+* link:https://github.com/enidisepic/cf-dyndns/pkgs/container/cf-dyndns[OCI Image]
+* link:https://github.com/enidisepic/cf-dyndns/actions[Binaries]
+1. Click on latest run
+2. Binary artifacts can be found near the bottom
+
 
 == Usage
 
@@ -40,7 +50,7 @@ services:
 
 These environment variables can be defined directory or in a `.env` file in the same directory as the daemon itself.
 
-[#cron-env]
+[#cron-schedule]
 ==== `CRON_SCHEDULE`
 
 Optional. The cron schedule at which to update the DNS entry (default `@every 5m`)
@@ -73,6 +83,4 @@ In the networking tab there should now be a request to `https://dash.cloudflare.
 
 == To Do
 
-* Binary releases
-* Linting/etc. within CI
-* Script to get entry and zone IDs
+* Automatic retrieval of zone and entry ID

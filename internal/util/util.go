@@ -1,5 +1,7 @@
+// Package util houses utility functions
 package util
 
-func Zero[T interface{}]() T {
+// Zero returns an empty T
+func Zero[T any]() T {
 	return *new(T)
 }

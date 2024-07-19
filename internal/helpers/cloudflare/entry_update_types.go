@@ -1,4 +1,6 @@
-package cloudflare_wrapper
+package cloudflare
+
+const automaticTTL = 1
 
 type entryUpdateRequest struct {
 	Content string   `json:"content"`
@@ -6,9 +8,9 @@ type entryUpdateRequest struct {
 	Proxied bool     `json:"proxied"`
 	Type    string   `json:"type"`
 	Comment string   `json:"comment"`
-	Id      string   `json:"id"`
+	ID      string   `json:"id"`
 	Tags    []string `json:"tags"`
-	Ttl     int      `json:"ttl"`
+	TTL     int      `json:"ttl"`
 }
 
 type entryUpdateResponse struct {
@@ -25,8 +27,8 @@ func createEntryUpdateRequest(
 		Proxied: false,
 		Type:    "A",
 		Comment: "",
-		Id:      cloudflareVariables.ZoneId,
+		ID:      cloudflareVariables.ZoneID,
 		Tags:    []string{},
-		Ttl:     1, // Marks TTL as automatic
+		TTL:     automaticTTL, // Marks TTL as automatic
 	}
 }

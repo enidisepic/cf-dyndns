@@ -1,4 +1,6 @@
-package http_helper
+// Package http houses functions related to making the
+// http package easier to use for our use case.
+package http
 
 import (
 	"encoding/json"
@@ -7,7 +9,9 @@ import (
 	"net/http"
 )
 
-func Get[T interface{}](url string) (T, error) {
+// Get makes an HTTP GET request and returns the JSON response
+// marshaled as T
+func Get[T any](url string) (T, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return util.Zero[T](), errors.New("error requesting " + url)
@@ -22,7 +26,10 @@ func Get[T interface{}](url string) (T, error) {
 	return unmarshalledResponse, nil
 }
 
-func Patch[T interface{}, V interface{}](
+// Patch makes an HTTP POST request. It takes in an any
+// T and V, T is what the request response will be
+// marshaled into, V is the request body
+func Patch[T any, V any](
 	url string,
 	bearerToken string,
 	body T,

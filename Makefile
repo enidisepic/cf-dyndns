@@ -3,8 +3,15 @@
 # ========================
 
 OUTPUT_DIRECTORY ?= out
-OUTPUT_FILE      := $(OUTPUT_DIRECTORY)/cf-dyndns
+OUTPUT_FILE_NAME ?= cf-dyndns
+OUTPUT_PATH      := $(OUTPUT_DIRECTORY)/$(OUTPUT_FILE_NAME)
 CMD_DIRECTORY    := $(CURDIR)/cmd/cf-dyndns
+
+ifeq ($(GOOS), windows)
+ifneq ($(lastword $(subst ., , $(OUTPUT_FILE_NAME))), exe)
+	OUTPUT_PATH := $(OUTPUT_PATH).exe
+endif
+endif
 
 # ========================
 # Building and Running
@@ -19,5 +26,15 @@ run:
 .PHONY: build
 build:
 	@echo "-> Building cf-dyndns <-"
-	go build -o $(OUTPUT_FILE) $(CMD_DIRECTORY)
+	go build -o $(OUTPUT_PATH) $(CMD_DIRECTORY)
+	@echo
+
+# ========================
+# Linting
+# ========================
+
+.PHONY: lint
+lint:
+	@echo "-> Running revive <-"
+	revive -config revive.toml -exclude vendor/... -formatter friendly ./...
 	@echo

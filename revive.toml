@@ -1,0 +1,17 @@
+enableAllRules = true
+
+[rule.add-constant]
+    Exclude = ["internal/helpers/cloudflare/config.go"]
+
+[rule.deep-exit]
+    Exclude = ["cmd/cf-dyndns/main.go"]
+
+[rule.line-length-limit]
+    Arguments = [120]
+
+[rule.package-comments]
+    Exclude = [
+        "internal/helpers/cloudflare/config.go",
+        "internal/helpers/cloudflare/entry_update_types.go",
+        "internal/helpers/http/util.go",
+    ]

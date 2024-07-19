@@ -2,5 +2,7 @@
 out
 .dockerignore
 .gitignore
+.mega-linter.yml
 Dockerfile
 README.adoc
+revive.toml

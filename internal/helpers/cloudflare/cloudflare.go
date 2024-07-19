@@ -1,11 +1,14 @@
-package cloudflare_wrapper
+// Package cloudflare houses helper functions
+// for the Cloudflare API.
+package cloudflare
 
 import (
 	"errors"
-	"github.com/enidisepic/cf-dyndns/internal/http_helper"
+	"github.com/enidisepic/cf-dyndns/internal/helpers/http"
 	"log"
 )
 
+// UpdateEntry is a helper function to update a Cloudflare DNS entry
 func UpdateEntry(ipAddress string) error {
 	config, err := getConfig()
 	if err != nil {
@@ -18,12 +21,12 @@ func UpdateEntry(ipAddress string) error {
 	)
 
 	log.Println("Updating DNS entry for:", config.EntryName)
-	cloudflareEntryCreateResponse, err := http_helper.Patch[
+	cloudflareEntryCreateResponse, err := http.Patch[
 		entryUpdateRequest,
 		entryUpdateResponse,
 	](
-		config.ApiUrl,
-		config.ApiKey,
+		config.APIURL,
+		config.APIKEY,
 		cloudflareEntryCreateRequest,
 	)
 	if err != nil {
