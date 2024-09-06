@@ -90,6 +90,8 @@ spec:
       securityContext:
         runAsUser: 1000
       containers:
+      # If you require more than 1 domain in sync, you can add more containers to the pod
+      # clone the container as shown below into another entry, changing the entry name & ID as relevant
       - name: dyndns
         image: ghcr.io/enidisepic/cf-dyndns:latest
         env:
