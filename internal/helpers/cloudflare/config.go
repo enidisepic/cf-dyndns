@@ -12,6 +12,7 @@ type entryUpdateRequestConfig struct {
 	APIURL    string
 	ZoneID    string
 	EntryName string
+	Proxied   bool
 }
 
 func getConfig() (entryUpdateRequestConfig, error) {
@@ -31,6 +32,8 @@ func getConfig() (entryUpdateRequestConfig, error) {
 	if entryName == "" {
 		return util.Zero[entryUpdateRequestConfig](), errors.New("CF_ENTRY_NAME environment variable not set")
 	}
+	
+	proxied := os.Getenv("CF_PROXIED")
 
 	cloudflareAPIURL := fmt.Sprintf(
 		"https://api.cloudflare.com/client/v4/zones/%s/dns_records/%s",
@@ -42,6 +45,7 @@ func getConfig() (entryUpdateRequestConfig, error) {
 		APIKEY:    apiKey,
 		APIURL:    cloudflareAPIURL,
 		ZoneID:    zoneID,
-		EntryName: entryName,
+		EntryName: entryName,	
+		Proxied:   proxied != "",
 	}, nil
 }
