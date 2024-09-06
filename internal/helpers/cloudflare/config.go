@@ -46,6 +46,6 @@ func getConfig() (entryUpdateRequestConfig, error) {
 		APIURL:    cloudflareAPIURL,
 		ZoneID:    zoneID,
 		EntryName: entryName,	
-		Proxied:   proxied != ""
+		Proxied:   proxied != "",
 	}, nil
 }
