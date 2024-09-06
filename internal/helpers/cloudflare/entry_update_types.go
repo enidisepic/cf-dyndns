@@ -24,7 +24,7 @@ func createEntryUpdateRequest(
 	return entryUpdateRequest{
 		Content: ipAddress,
 		Name:    cloudflareVariables.EntryName,
-		Proxied: false,
+		Proxied: cloudflareVariables.Proxied,
 		Type:    "A",
 		Comment: "",
 		ID:      cloudflareVariables.ZoneID,
