@@ -4,15 +4,25 @@ Dynamic DNS using Cloudflare
 
 == How it works
 
-cf-dyndns is available as an OCI image or executable (coming soon) for Windows, Linux and macOS (both amd64 and arm64).
+cf-dyndns is available as an OCI image or executable for Windows, Linux and macOS (both amd64 and arm64).
 
-Internally, it runs as a daemon and (should) only fatally crash in the case of something going critically wrong during startup.
+Internally, it runs as a daemon and (should) only fatally crash in the case of something going wrong during startup.
 
-If no Cron schedule is set (see xref:#cron-env[]) it will update the defined Cloudflare entry every five minutes.
+If no Cron schedule is set (see xref:#cron-schedule[]) it will update the defined Cloudflare entry every five minutes.
 
 The actual process works by grabbing the current IP via a call to the anysrc API (https://anysrc.net). The IP from that is then set as the IP which the defined Cloudflare DNS entry is pointing to.
 
 NOTE: Currently, only IPv4 addresses/A records are supported.
+
+== Releases
+
+Releases can be found here:
+
+* link:https://github.com/enidisepic/cf-dyndns/pkgs/container/cf-dyndns[OCI Image]
+* link:https://github.com/enidisepic/cf-dyndns/actions[Binaries]
+1. Click on latest run
+2. Binary artifacts can be found near the bottom
+
 
 == Usage
 
@@ -34,13 +44,83 @@ services:
       - CF_ZONE_ID=<your zone ID>
       - CF_ENTRY_NAME=<your DNS entry name>
       - CF_ENTRY_ID=<your DNS entry's ID>
+      - CF_PROXIED='1'
+----
+
+==== Kubernetes
+
+This assumes you have created a namespace, and have created the secret (example provided).
+
+Secret:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cf-api-secret
+
+  # This namespace must match your Deployment!
+  namespace: dyndns
+type: Opaque
+data:
+  # Secrets must be base64 encoded
+  api-key: "<your base64 encoded API key>"
+----
+
+Deployment
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dyndns
+  namespace: dyndns
+spec:
+  selector:
+    matchLabels:
+      app: dyndns
+  template:
+    metadata:
+      labels:
+        app: dyndns
+    spec:
+      # Override Dockerfile "USER" directive to a user that exists
+      securityContext:
+        runAsUser: 1000
+      containers:
+      # If you require more than 1 domain in sync, you can add more containers to the pod
+      # clone the container as shown below into another entry, changing the entry name & ID as relevant
+      - name: dyndns
+        image: ghcr.io/enidisepic/cf-dyndns:latest
+        env:
+          - name: CRON_SCHEDULE
+            value: '@every 1h'
+          - name: CF_ZONE_ID
+            value: '<your zone ID>'
+          - name: CF_ENTRY_NAME
+            value: '<your DNS entry name>'
+          - name: CF_ENTRY_ID
+            value: '<your DNS entry ID>'
+          - name: CF_PROXIED
+            value: '1'
+          - name: CF_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: cf-api-secret
+                key: api-key
+        resources:
+          limits:
+            cpu: '100m'
+            memory: '128Mi'
 ----
 
 === Environment Variables
 
 These environment variables can be defined directory or in a `.env` file in the same directory as the daemon itself.
 
-[#cron-env]
+[#cron-schedule]
 ==== `CRON_SCHEDULE`
 
 Optional. The cron schedule at which to update the DNS entry (default `@every 5m`)
@@ -71,8 +151,10 @@ The ID of the DynDNS entry. To find this open your browser's developer tools and
 
 In the networking tab there should now be a request to `https://dash.cloudflare.com/api/v4/zones/<zone ID>/dns_records/<entry ID>`. Copy the entry ID from this URL.
 
+==== `CF_PROXIED`
+
+Whether the record should be created as "Proxied". If the variable has any non empty value, it is treated as true, which will set the status to Proxied.
+
 == To Do
 
-* Binary releases
-* Linting/etc. within CI
-* Script to get entry and zone IDs
+* Automatic retrieval of zone and entry ID

@@ -1,0 +1,187 @@
+name: cf-dyndns Workflow
+
+on:
+  push:
+
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  megalinter:
+    name: Run MegaLinter
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: MegaLinter
+        uses: oxsecurity/megalinter@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload MegaLinter artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MegaLinter Reports
+          path: |
+            megalinter-reports
+            mega-linter.log
+
+  build-and-publish-image:
+    name: Build and publish OCI image
+
+    runs-on: ubuntu-latest
+
+    needs: megalinter
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=true
+          tags: |
+            type=ref,event=branch
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+  build-and-upload-binaries:
+    name: Build and upload binaries
+
+    runs-on: ubuntu-latest
+
+    needs: megalinter
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        goos:
+          - darwin
+          - linux
+          - windows
+        goarch:
+          - amd64
+          - arm64
+
+    env:
+      GO_VERSION: 1.22.5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set env vars for build output
+        run: |
+          OUTPUT_FILE_NAME=cf-dyndns-${{ matrix.goos }}-${{ matrix.goarch }}
+          if [ ${{ matrix.goos }} == "windows" ]; then
+            OUTPUT_FILE_NAME=${OUTPUT_FILE_NAME}.exe
+          fi
+          echo "OUTPUT_FILE_NAME=${OUTPUT_FILE_NAME}" >> $GITHUB_ENV
+
+      - name: Build cf-dyndns
+        run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} OUTPUT_FILE_NAME=${{ env.OUTPUT_FILE_NAME }} make build
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_FILE_NAME }}
+          path: out/${{ env.OUTPUT_FILE_NAME }}
+
+  scan-oci-image:
+    name: Scan OCI image
+
+    runs-on: ubuntu-latest
+
+    needs: build-and-publish-image
+
+    permissions:
+      packages: read
+      security-events: write
+
+    env:
+      SARIF_FILE_NAME: trivy-results.sarif
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan image (table)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}
+          format: table
+          exit-code: 0
+
+      - name: Scan image (SARIF)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}
+          format: sarif
+          output: ${{ env.SARIF_FILE_NAME }}
+          exit-code: 0
+
+      - name: Upload SARIF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SARIF_FILE_NAME }}
+          path: ${{ env.SARIF_FILE_NAME }}
+
+      - name: Upload SARIF to GitHub security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ env.SARIF_FILE_NAME }}

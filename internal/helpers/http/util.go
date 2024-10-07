@@ -38,7 +38,7 @@ func doPatchRequest(url string, body []byte, bearerToken string) (*http.Response
 	return response, nil
 }
 
-func unmarshalResponse[T interface{}](response *http.Response) (T, error) {
+func unmarshalResponse[T any](response *http.Response) (T, error) {
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return util.Zero[T](), errors.New("error reading response body")

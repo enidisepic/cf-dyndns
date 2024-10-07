@@ -1,14 +1,16 @@
 package cloudflare
 
+const automaticTTL = 1
+
 type entryUpdateRequest struct {
 	Content string   `json:"content"`
 	Name    string   `json:"name"`
 	Proxied bool     `json:"proxied"`
 	Type    string   `json:"type"`
 	Comment string   `json:"comment"`
-	Id      string   `json:"id"`
+	ID      string   `json:"id"`
 	Tags    []string `json:"tags"`
-	Ttl     int      `json:"ttl"`
+	TTL     int      `json:"ttl"`
 }
 
 type entryUpdateResponse struct {
@@ -22,11 +24,11 @@ func createEntryUpdateRequest(
 	return entryUpdateRequest{
 		Content: ipAddress,
 		Name:    cloudflareVariables.EntryName,
-		Proxied: false,
+		Proxied: cloudflareVariables.Proxied,
 		Type:    "A",
 		Comment: "",
-		Id:      cloudflareVariables.ZoneId,
+		ID:      cloudflareVariables.ZoneID,
 		Tags:    []string{},
-		Ttl:     1, // Marks TTL as automatic
+		TTL:     automaticTTL, // Marks TTL as automatic
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 )
 
+// UpdateEntry is a helper function to update a Cloudflare DNS entry
 func UpdateEntry(ipAddress string) error {
 	config, err := getConfig()
 	if err != nil {
@@ -24,8 +25,8 @@ func UpdateEntry(ipAddress string) error {
 		entryUpdateRequest,
 		entryUpdateResponse,
 	](
-		config.ApiUrl,
-		config.ApiKey,
+		config.APIURL,
+		config.APIKEY,
 		cloudflareEntryCreateRequest,
 	)
 	if err != nil {
