@@ -27,8 +27,6 @@ run:
 build:
 	@echo "-> Building cf-dyndns <-"
 	go build -o $(OUTPUT_PATH) $(CMD_DIRECTORY)
-<<<<<<< HEAD
-=======
 	@echo
 
 # ========================
@@ -39,5 +37,4 @@ build:
 lint:
 	@echo "-> Running revive <-"
 	revive -config revive.toml -exclude vendor/... -formatter friendly ./...
->>>>>>> nullishamy
 	@echo

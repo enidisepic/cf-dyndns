@@ -10,6 +10,8 @@ RUN OUTPUT_DIRECTORY=. make build
 FROM alpine:3
 WORKDIR /app
 
+RUN addgroup -S cf-dyndns && adduser -S cf-dyndns -G cf-dyndns
+
 COPY --from=build /build/cf-dyndns cf-dyndns
 
 HEALTHCHECK NONE

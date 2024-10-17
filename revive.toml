@@ -1,14 +1,18 @@
 enableAllRules = true
 
+# Revive complains about empty strings being "magic strings"
 [rule.add-constant]
     Exclude = ["internal/helpers/cloudflare/config.go"]
 
+# CronRunner does not support running functions with an error return so we must log.Fatal in the run() function
 [rule.deep-exit]
     Exclude = ["cmd/cf-dyndns/main.go"]
 
+# Preference
 [rule.line-length-limit]
     Arguments = [120]
 
+# Every package should only have one file with a package comment, revive's behavior regarding this is weird
 [rule.package-comments]
     Exclude = [
         "internal/helpers/cloudflare/config.go",
